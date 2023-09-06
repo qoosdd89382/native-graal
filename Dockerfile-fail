@@ -1,0 +1,14 @@
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.3 as graalvm
+
+ENV APP_NAME native-graal
+
+COPY ./target/${APP_NAME}*.jar /app/app.jar
+
+RUN gu install native-image
+RUN native-image -jar app.jar --no-fallback
+
+FROM frolvlad/alpine-glibc
+
+COPY --from=graalvm /app/${APP_NAME} /app/app-starter
+RUN chmod +x /app/app-starter/app
+ENTRYPOINT ["/app/app-starter/app"]
